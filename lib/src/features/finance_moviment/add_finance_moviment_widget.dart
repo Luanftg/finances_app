@@ -1,8 +1,12 @@
 import 'dart:developer';
 
-import 'package:finances_app/CAtegory_model.dart';
-import 'package:finances_app/datetime_extension.dart';
-import 'package:finances_app/form_field_widget.dart';
+import 'package:finances_app/src/core/extensions/datetime_extension.dart';
+import 'package:finances_app/src/features/categories/category_model.dart';
+import 'package:finances_app/src/features/finance_moviment/data/local_finance_moviment_service.dart';
+import 'package:finances_app/src/features/finance_moviment/domain/finance_moviment_model.dart';
+import 'package:finances_app/src/features/finance_moviment/finances_card_widget.dart';
+import 'package:finances_app/src/core/widgets/form_field_widget.dart';
+import 'package:finances_app/src/core/formatters/real_input_formatter.dart';
 import 'package:flutter/material.dart';
 
 class AddFinanceMoviment extends StatefulWidget {
@@ -21,7 +25,8 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
   final TextEditingController _paymentController = TextEditingController();
   final ValueNotifier<bool> _isExpense = ValueNotifier(true);
   final ValueNotifier<bool> _isMonthFrequency = ValueNotifier(true);
-  final ValueNotifier<Color?> _color = ValueNotifier(Colors.grey);
+  final ValueNotifier<Color?> _color = ValueNotifier(Colors.transparent);
+  final ValueNotifier<DateTime?> _dateTime = ValueNotifier(null);
 
   final List<CategoryModel> _categoriasDespesa = [
     CategoryModel(name: 'Casa', color: Colors.blueAccent),
@@ -38,6 +43,8 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
         name: 'Aluguel', type: CategoryType.receita, color: Colors.indigo),
   ];
 
+  final List<String> paymentTypes = ['Pix', 'Dinheiro', 'Crédito', 'Debito'];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,88 +59,15 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
               child: ValueListenableBuilder(
                   valueListenable: _color,
                   builder: (context, value, child) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            color: _color.value ?? Colors.grey,
-                            blurRadius: 5,
-                            blurStyle: BlurStyle.outer,
-                            spreadRadius: 2,
-                          )
-                        ],
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                ValueListenableBuilder(
-                                  valueListenable: _isExpense,
-                                  builder: (context, value, child) {
-                                    return Text(
-                                      value ? 'Despesa' : 'Receita',
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    );
-                                  },
-                                ),
-                                SizedBox(
-                                  width: 120,
-                                  child: TextField(
-                                    decoration: InputDecoration(
-                                        border: InputBorder.none),
-                                    controller: _dataController,
-                                    readOnly: true,
-                                  ),
-                                )
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                ValueListenableBuilder(
-                                    valueListenable: _color,
-                                    builder: (context, value, child) {
-                                      return Container(
-                                        width: 40,
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          color: _color.value,
-                                        ),
-                                      );
-                                    }),
-                                Flexible(
-                                  child: ListTile(
-                                    title: TextField(
-                                      decoration: InputDecoration(
-                                          border: InputBorder.none),
-                                      controller: _categoryController,
-                                      readOnly: true,
-                                    ),
-                                    subtitle: Text(_paymentController.text),
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 80,
-                                  child: TextField(
-                                    decoration: InputDecoration(
-                                        border: InputBorder.none),
-                                    controller: _valueController,
-                                    readOnly: true,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+                    return FinancesCardWidget(
+                      isExpense: _isExpense,
+                      cardColor: _color,
+                      color: value,
+                      dataController: _dataController,
+                      categoryController: _categoryController,
+                      payment: _paymentController.text,
+                      valueController: _valueController,
+                      descriptionController: _descriptionController,
                     );
                   }),
             ),
@@ -185,50 +119,63 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
                           ],
                         ),
                       ),
-                      InkWell(
-                        onTap: () async {
-                          final now = DateTime.now();
-                          final DateTime? dateTime = await showDatePicker(
-                            context: context,
-                            firstDate: now.subtract(Duration(days: 365)),
-                            lastDate: now.add(Duration(days: 365)),
-                            initialDate: now,
-                          );
-                          if (dateTime != null) {
-                            _dataController.text = dateTime.onlyDate;
-                          }
-                        },
-                        child: FormFieldWidget(
-                            label: 'Data',
-                            child: ValueListenableBuilder(
-                                valueListenable: _dataController,
-                                builder: (context, value, child) {
-                                  return SizedBox(
-                                    width: double.infinity,
-                                    height: kTextTabBarHeight,
-                                    child: Center(
-                                      child: Text(
-                                        _dataController.text.isEmpty
-                                            ? 'Selecionar data'
-                                            : _dataController.text,
-                                      ),
-                                    ),
-                                  );
-                                })),
-                      ),
-                      FormFieldWidget(
-                        label: 'Valor',
-                        child: TextFormField(
-                          decoration: InputDecoration(border: InputBorder.none),
-                          controller: _valueController,
-                          keyboardType: TextInputType.number,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () async {
+                                final now = DateTime.now();
+                                final DateTime? dateTime = await showDatePicker(
+                                  context: context,
+                                  firstDate: now.subtract(Duration(days: 365)),
+                                  lastDate: now.add(Duration(days: 365)),
+                                  initialDate: now,
+                                );
+                                if (dateTime != null) {
+                                  _dateTime.value = dateTime;
+                                  _dataController.text = dateTime.onlyDate;
+                                }
+                              },
+                              child: FormFieldWidget(
+                                  label: 'Data',
+                                  child: ValueListenableBuilder(
+                                      valueListenable: _dataController,
+                                      builder: (context, value, child) {
+                                        return SizedBox(
+                                          width: double.infinity,
+                                          height: kTextTabBarHeight,
+                                          child: Center(
+                                            child: Text(
+                                              _dataController.text.isEmpty
+                                                  ? 'Selecionar data'
+                                                  : _dataController.text,
+                                            ),
+                                          ),
+                                        );
+                                      })),
+                            ),
+                          ),
+                          Expanded(
+                            child: FormFieldWidget(
+                              label: 'Valor',
+                              child: TextFormField(
+                                textAlign: TextAlign.center,
+                                decoration:
+                                    InputDecoration(border: InputBorder.none),
+                                controller: _valueController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [RealInputFormatter()],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       FormFieldWidget(
                         label: 'Descrição',
                         child: TextFormField(
                           decoration: InputDecoration(border: InputBorder.none),
                           controller: _descriptionController,
+                          textAlign: TextAlign.center,
                         ),
                       ),
                       ValueListenableBuilder(
@@ -289,23 +236,22 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
                                 onSelected: (value) =>
                                     _paymentController.text = value ?? '',
                                 width: double.infinity,
-                                dropdownMenuEntries:
-                                    ['Pix', 'Dinheiro', 'Crédito', 'Debito']
-                                        .map(
-                                          (e) => DropdownMenuEntry<String>(
-                                            value: e,
-                                            label: e,
-                                            leadingIcon: Container(
-                                              width: 12,
-                                              height: 12,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                              ),
-                                            ),
-                                            labelWidget: Text(e),
+                                dropdownMenuEntries: paymentTypes
+                                    .map(
+                                      (e) => DropdownMenuEntry<String>(
+                                        value: e,
+                                        label: e,
+                                        leadingIcon: Container(
+                                          width: 12,
+                                          height: 12,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
                                           ),
-                                        )
-                                        .toList(),
+                                        ),
+                                        labelWidget: Text(e),
+                                      ),
+                                    )
+                                    .toList(),
                                 controller: _paymentController,
                               ),
                             );
@@ -319,7 +265,7 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
         ),
       ),
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         child: SafeArea(
           child: SizedBox(
             width: double.infinity,
@@ -333,8 +279,25 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
                 ),
               ),
               onPressed: () {
-                if (_key.currentState?.validate() ?? false) {
+                if (_dateTime.value != null &&
+                    _valueController.text.isNotEmpty &&
+                    _paymentController.text.isNotEmpty &&
+                    _categoryController.text.isNotEmpty) {
                   log('Data: ${_dataController.text}\nValor: ${_valueController.text}\nDescrição: ${_descriptionController.text}\nCategoria: ${_categoryController.text}\nÉ Despesa: ${_isExpense.value}\nÉ Mensal: ${_isMonthFrequency.value}');
+                  final FinanceMovimentModel model = FinanceMovimentModel(
+                    id: FinanceMovimentId(
+                        value:
+                            DateTime.now().millisecondsSinceEpoch.toString()),
+                    categoryModel:
+                        CategoryModel(name: _categoryController.text),
+                    value: double.tryParse(_valueController.text) ?? 00,
+                    tipoDePagamento:
+                        TipoDePagamento(name: _paymentController.text),
+                    data: _dateTime.value ?? DateTime.now(),
+                    description: _descriptionController.text,
+                  );
+
+                  LocalFinanceMovimentService().save(model);
                 }
               },
               child: const Text('Adicionar'),
