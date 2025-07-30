@@ -93,7 +93,7 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
                                   onChanged: (val) {
                                     _categoryController.value =
                                         TextEditingValue.empty;
-                                    _color.value = Colors.grey;
+                                    _color.value = Colors.transparent;
                                     _isExpense.value = val;
                                   }),
                             ),
