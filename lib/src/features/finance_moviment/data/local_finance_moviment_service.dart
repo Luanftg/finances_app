@@ -25,17 +25,18 @@ class LocalFinanceMovimentService implements FinanceMovimentService {
   }
 
   @override
-  Future<void> save(FinanceMovimentModel financeMovimentModel) async {
+  Future<bool> save(FinanceMovimentModel financeMovimentModel) async {
     try {
       final List<FinanceMovimentModel> savedList = List.from(await findAll());
       savedList.add(financeMovimentModel);
       final encodedList = savedList.map((e) => jsonEncode(e.toMap())).toList();
       final sharedPreferences = await SharedPreferences.getInstance();
 
-      await sharedPreferences.setStringList(_financeMovimentKey, encodedList);
-      return;
+      return await sharedPreferences.setStringList(
+          _financeMovimentKey, encodedList);
     } catch (e) {
       log(e.toString());
+      return false;
     }
   }
 }

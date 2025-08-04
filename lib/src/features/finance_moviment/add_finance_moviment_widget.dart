@@ -27,6 +27,7 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
   final ValueNotifier<bool> _isMonthFrequency = ValueNotifier(true);
   final ValueNotifier<Color?> _color = ValueNotifier(Colors.transparent);
   final ValueNotifier<DateTime?> _dateTime = ValueNotifier(null);
+  final ValueNotifier<bool> _isFormValid = ValueNotifier(false);
 
   final List<CategoryModel> _categoriasDespesa = [
     CategoryModel(name: 'Casa', color: Colors.blueAccent),
@@ -44,6 +45,22 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
   ];
 
   final List<String> paymentTypes = ['Pix', 'Dinheiro', 'Crédito', 'Debito'];
+
+  @override
+  void initState() {
+    super.initState();
+    _valueController.addListener(_listener);
+    _descriptionController.addListener(_listener);
+  }
+
+  void _listener() => isValid();
+
+  @override
+  void dispose() {
+    _valueController.removeListener(_listener);
+    _descriptionController.removeListener(_listener);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +112,7 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
                                         TextEditingValue.empty;
                                     _color.value = Colors.transparent;
                                     _isExpense.value = val;
+                                    isValid();
                                   }),
                             ),
                             const Text('Despesa'),
@@ -111,8 +129,10 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
                               valueListenable: _isMonthFrequency,
                               builder: (context, value, _) => Switch(
                                 value: value,
-                                onChanged: (val) =>
-                                    _isMonthFrequency.value = val,
+                                onChanged: (val) {
+                                  _isMonthFrequency.value = val;
+                                  isValid();
+                                },
                               ),
                             ),
                             const Text('Pontual'),
@@ -134,6 +154,7 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
                                 if (dateTime != null) {
                                   _dateTime.value = dateTime;
                                   _dataController.text = dateTime.onlyDate;
+                                  isValid();
                                 }
                               },
                               child: FormFieldWidget(
@@ -185,8 +206,10 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
                               label:
                                   'Selecione uma categoria de ${_isExpense.value ? 'Despesa' : 'Receita'}',
                               child: DropdownMenu<CategoryModel>(
-                                onSelected: (value) =>
-                                    _color.value = value?.color,
+                                onSelected: (value) {
+                                  _color.value = value?.color;
+                                  isValid();
+                                },
                                 width: double.infinity,
                                 dropdownMenuEntries: value
                                     ? _categoriasDespesa
@@ -233,8 +256,10 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
                               label:
                                   'Selecione um de Tipo de ${_isExpense.value ? 'pagamento' : 'recebimento'}',
                               child: DropdownMenu<String>(
-                                onSelected: (value) =>
-                                    _paymentController.text = value ?? '',
+                                onSelected: (value) {
+                                  _paymentController.text = value ?? '';
+                                  isValid();
+                                },
                                 width: double.infinity,
                                 dropdownMenuEntries: paymentTypes
                                     .map(
@@ -270,41 +295,64 @@ class _AddFinanceMovimentState extends State<AddFinanceMoviment> {
           child: SizedBox(
             width: double.infinity,
             height: 60,
-            child: ElevatedButton(
-              style: ButtonStyle(
-                shape: WidgetStatePropertyAll(
-                  BeveledRectangleBorder(
-                    borderRadius: BorderRadiusGeometry.circular(4),
-                  ),
-                ),
-              ),
-              onPressed: () {
-                if (_dateTime.value != null &&
-                    _valueController.text.isNotEmpty &&
-                    _paymentController.text.isNotEmpty &&
-                    _categoryController.text.isNotEmpty) {
-                  log('Data: ${_dataController.text}\nValor: ${_valueController.text}\nDescrição: ${_descriptionController.text}\nCategoria: ${_categoryController.text}\nÉ Despesa: ${_isExpense.value}\nÉ Mensal: ${_isMonthFrequency.value}');
-                  final FinanceMovimentModel model = FinanceMovimentModel(
-                    id: FinanceMovimentId(
-                        value:
-                            DateTime.now().millisecondsSinceEpoch.toString()),
-                    categoryModel:
-                        CategoryModel(name: _categoryController.text),
-                    value: double.tryParse(_valueController.text) ?? 00,
-                    tipoDePagamento:
-                        TipoDePagamento(name: _paymentController.text),
-                    data: _dateTime.value ?? DateTime.now(),
-                    description: _descriptionController.text,
-                  );
+            child: ValueListenableBuilder(
+                valueListenable: _isFormValid,
+                builder: (context, value, child) {
+                  return ElevatedButton(
+                    style: ButtonStyle(
+                      shape: WidgetStatePropertyAll(
+                        BeveledRectangleBorder(
+                          borderRadius: BorderRadiusGeometry.circular(4),
+                        ),
+                      ),
+                    ),
+                    onPressed: isValid()
+                        ? () {
+                            log('Data: ${_dataController.text}\nValor: ${_valueController.text}\nDescrição: ${_descriptionController.text}\nCategoria: ${_categoryController.text}\nÉ Despesa: ${_isExpense.value}\nÉ Mensal: ${_isMonthFrequency.value}');
+                            final FinanceMovimentModel model =
+                                FinanceMovimentModel(
+                              id: FinanceMovimentId(
+                                  value: DateTime.now()
+                                      .millisecondsSinceEpoch
+                                      .toString()),
+                              categoryModel:
+                                  CategoryModel(name: _categoryController.text),
+                              value:
+                                  double.tryParse(_valueController.text) ?? 00,
+                              tipoDePagamento: TipoDePagamento(
+                                  name: _paymentController.text),
+                              data: _dateTime.value ?? DateTime.now(),
+                              description: _descriptionController.text,
+                            );
 
-                  LocalFinanceMovimentService().save(model);
-                }
-              },
-              child: const Text('Adicionar'),
-            ),
+                            LocalFinanceMovimentService()
+                                .save(model)
+                                .then((value) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    value
+                                        ? 'Movimentacao adicionada com sucesso'
+                                        : 'Falha ao adicionar movimentacao',
+                                  ),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                              Navigator.of(context).maybePop();
+                            });
+                          }
+                        : null,
+                    child: const Text('Adicionar'),
+                  );
+                }),
           ),
         ),
       ),
     );
   }
+
+  bool isValid() => _isFormValid.value = (_dateTime.value != null &&
+      _valueController.text.isNotEmpty &&
+      _paymentController.text.isNotEmpty &&
+      _categoryController.text.isNotEmpty);
 }
