@@ -16,8 +16,8 @@ class CategoryModel {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'name': name,
-      'color': color?.value,
-      'type': type.toString(),
+      'color': color?.toARGB32(),
+      'type': type.name,
     };
   }
 

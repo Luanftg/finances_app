@@ -5,10 +5,12 @@ class FormFieldWidget extends StatelessWidget {
     super.key,
     required this.label,
     required this.child,
+    this.height,
   });
 
   final Widget child;
   final String label;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +24,8 @@ class FormFieldWidget extends StatelessWidget {
             child: Text(label),
           ),
           Container(
+            height: height,
+            width: double.infinity,
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
                 color: Colors.grey.shade400),

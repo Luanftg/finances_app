@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:finances_app/src/features/finance_moviment/data/finance_moviment_service.dart';
+import 'package:finances_app/src/features/finance_moviment/data/finance_moviment_repository.dart';
 import 'package:finances_app/src/features/finance_moviment/domain/finance_moviment_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class LocalFinanceMovimentService implements FinanceMovimentService {
+class LocalFinanceMovimentRepository implements FinanceMovimentRepository {
   final String _financeMovimentKey = 'finance_moviments_key';
 
   @override
@@ -38,5 +38,15 @@ class LocalFinanceMovimentService implements FinanceMovimentService {
       log(e.toString());
       return false;
     }
+  }
+
+  @override
+  Future<List<FinanceMovimentModel>> findPerMonth(int month) async {
+    try {
+      return (await findAll()).where((e) => e.data.month == month).toList();
+    } catch (e) {
+      log(e.toString());
+    }
+    return [];
   }
 }
