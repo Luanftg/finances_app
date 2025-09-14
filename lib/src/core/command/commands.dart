@@ -56,3 +56,5 @@ class Command1<Output extends Object, Input extends Object>
     await _execute(() => action(param));
   }
 }
+
+class Init {}

@@ -18,9 +18,16 @@ mixin DialogMessageMixin<T extends StatefulWidget> on State<T> {
                   : Icons.check_circle_outline,
               color: isError ? Colors.red : Colors.green,
             ),
-            content: Center(
-              child: Text(message),
-            ),
+            content: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text(message),
+            ]),
+            actions: [
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Ok'))
+            ],
           );
         },
       );
