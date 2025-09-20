@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:finances_app/src/core/command/commands.dart';
 import 'package:finances_app/src/core/result/result.dart';
+import 'package:finances_app/src/core/services/shared_auth_service.dart';
 import 'package:finances_app/src/shared/http/http.dart';
 import 'package:finances_app/src/shared/stores/keys/local_storage_keys.dart';
 import 'package:finances_app/src/shared/stores/local_storage/local_storage.dart';
@@ -30,11 +31,11 @@ class SplashViewModel extends ChangeNotifier {
         notifyListeners();
         return Result.sucess(NavigateTo.login);
       }
-      final request = HttpRequest(
-        method: HttpMethods.get,
-        baseUrl: 'http://10.0.2.2:8080/auth',
-      );
-      final response = await _httpClient.send(request);
+
+      final response = await _httpClient.get('/auth', headers: {
+        'Authorization':
+            'Bearer ${await _localStorage.getString(LocalStorageKeys.authToken)}'
+      });
       if (response.statusCode == 200) {
         notifyListeners();
         return Result.sucess(NavigateTo.home);

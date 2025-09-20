@@ -5,8 +5,13 @@ abstract class HttpClient {
 
   HttpClient({required this.baseUrl});
 
-  Future<HttpResponse> get(String path,
-      {dynamic data, Map<String, dynamic>? headers});
+  Future<HttpResponse> get(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? headers,
+    List<RequestMiddleware> requestMiddlewares = const [],
+    List<RequestMiddleware> responseMiddlewares = const [],
+  });
 
   Future<HttpResponse> send(
     HttpRequest request, {

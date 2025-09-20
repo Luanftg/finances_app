@@ -43,6 +43,11 @@ class HomePage extends StatelessWidget {
                 child: Column(
                   spacing: 8,
                   children: [
+                    // ElevatedButton(
+                    //     onPressed: () {
+                    //       Navigator.of(context).pushNamed('log_screen');
+                    //     },
+                    //     child: Text('LogScreen')),
                     MonthHeaderWidget(
                       actualMonth: homeViewModel.actualMonth.monthName,
                       onSubstractMonth: homeViewModel.substractMonth,
