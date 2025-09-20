@@ -16,10 +16,18 @@ dependencies:
   flutter_launcher_icons: ^0.14.4
   awesome_icons: ^1.1.0
   dio: ^5.9.0
+  google_sign_in: ^7.1.1
+  envied: ^1.2.1
+  path_provider: ^2.1.5
+  logger_package:
+    path: '../../logger_package'
+ 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  envied_generator: ^1.2.1
+  build_runner: ^2.7.1
 
 flutter_launcher_icons:
   android: "launcher_icon"

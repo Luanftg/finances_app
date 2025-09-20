@@ -26,20 +26,26 @@ class _LoginPageState extends State<LoginPage> with DialogMessageMixin {
           listenable: widget.loginViewModel,
           builder: (context, child) {
             final comandAuth = widget.loginViewModel.authentication;
-            if (comandAuth.isRunning) {
+            final commandGoogle = widget.loginViewModel.googleAuthenticantion;
+            if (comandAuth.isRunning || commandGoogle.isRunning) {
               return Center(
                 child: CircularProgressIndicator(),
               );
             }
-            if (comandAuth.error && comandAuth.result is Failure) {
+            if ((comandAuth.error || commandGoogle.error) &&
+                    (comandAuth.result is Failure) ||
+                (commandGoogle.result is Failure)) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 showErrorDialog(
                     comandAuth.result?.asFailure.error.toString() ?? '');
               });
             }
-            if (comandAuth.completed && comandAuth.result is Sucess) {
+            if ((comandAuth.completed || commandGoogle.completed) &&
+                    (comandAuth.result is Sucess) ||
+                (commandGoogle.result is Sucess)) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                Navigator.of(context).pushReplacementNamed('home');
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil('home', (_) => false);
               });
             }
 
@@ -106,7 +112,6 @@ class _LoginPageState extends State<LoginPage> with DialogMessageMixin {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text('Não tem conta ?'),
-                          const SizedBox(width: 4),
                           TextButton(
                             onPressed: () {},
                             child: Text('Criar agora!'),
@@ -117,20 +122,30 @@ class _LoginPageState extends State<LoginPage> with DialogMessageMixin {
                         'Ou',
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: () {},
-                          child: Row(
-                            spacing: 16,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(FontAwesomeIcons.google),
-                              Text('Acessar com o Google')
-                            ],
-                          ),
-                        ),
-                      )
+                      ListenableBuilder(
+                          listenable:
+                              widget.loginViewModel.googleAuthenticantion,
+                          builder: (context, child) {
+                            return widget.loginViewModel.googleAuthenticantion
+                                    .isRunning
+                                ? CircularProgressIndicator()
+                                : SizedBox(
+                                    height: 50,
+                                    child: ElevatedButton(
+                                      onPressed: widget.loginViewModel
+                                          .googleAuthenticantion.execute,
+                                      child: Row(
+                                        spacing: 16,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(FontAwesomeIcons.google),
+                                          Text('Acessar com o Google')
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                          })
                     ],
                   ),
                 ),

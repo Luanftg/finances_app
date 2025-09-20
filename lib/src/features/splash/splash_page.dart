@@ -28,8 +28,8 @@ class _SplashPageState extends State<SplashPage> {
                 startAppCommand.result is Sucess<NavigateTo>) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 Navigator.of(context).pushNamedAndRemoveUntil(
-                  startAppCommand.result?.asSucess.value.name ?? '/login',
-                  (route) => true,
+                  startAppCommand.result?.asSucess.value.name ?? 'login',
+                  (route) => false,
                 );
               });
             }
