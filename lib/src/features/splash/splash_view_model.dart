@@ -1,8 +1,8 @@
 import 'dart:developer';
 
 import 'package:finances_app/src/core/command/commands.dart';
+import 'package:finances_app/src/core/domain/domain.dart';
 import 'package:finances_app/src/core/result/result.dart';
-import 'package:finances_app/src/core/services/shared_auth_service.dart';
 import 'package:finances_app/src/shared/http/http.dart';
 import 'package:finances_app/src/shared/stores/keys/local_storage_keys.dart';
 import 'package:finances_app/src/shared/stores/local_storage/local_storage.dart';
@@ -37,7 +37,13 @@ class SplashViewModel extends ChangeNotifier {
             'Bearer ${await _localStorage.getString(LocalStorageKeys.authToken)}'
       });
       if (response.statusCode == 200) {
+        final user = ClientEntity.fromMap(response.body);
+        await _localStorage.saveString(
+          key: LocalStorageKeys.sessionUer,
+          value: user.toJson(),
+        );
         notifyListeners();
+
         return Result.sucess(NavigateTo.home);
       }
     } catch (e) {

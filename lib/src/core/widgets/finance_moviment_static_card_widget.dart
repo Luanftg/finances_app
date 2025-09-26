@@ -40,7 +40,7 @@ class FinancesCardStatic extends StatelessWidget {
       ),
       descriptionWidget: Text(
         entry.description ?? '',
-        textAlign: TextAlign.center,
+        textAlign: TextAlign.start,
       ),
       categoryWidget: Text(
         entry.categoryModel.name,
