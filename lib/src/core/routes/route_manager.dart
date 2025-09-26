@@ -15,6 +15,7 @@ import 'package:finances_app/src/features/payment_types/data/payment_types_repos
 import 'package:finances_app/src/features/splash/splash_page.dart';
 import 'package:finances_app/src/features/splash/splash_view_model.dart';
 import 'package:finances_app/src/shared/http/dio/dio_http_client.dart';
+import 'package:finances_app/src/shared/stores/local_storage/local_storage.dart';
 import 'package:finances_app/src/shared/stores/shared_pref_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:logger_package/logger_package.dart';
@@ -51,6 +52,7 @@ class RouteManager {
             ),
         'home': (context) => HomePage(
               homeViewModel: HomeViewModel(
+                localStorage: SharedPrefStorage(),
                 financeMovimentService: LocalFinanceMovimentRepository(),
               ),
             ),

@@ -53,6 +53,8 @@ class LoginViewModel extends ChangeNotifier {
         notifyListeners();
         switch (resultValidate) {
           case Sucess():
+
+            // final resultAuthMe = await _loginRepository.
             return Result.sucess(Init());
           case Failure(:final error):
             return Result.failure(error);
