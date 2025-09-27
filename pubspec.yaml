@@ -22,6 +22,7 @@ dependencies:
   logger_package:
     path: '../../logger_package'
   google_fonts: ^6.3.2
+  auto_injector: ^2.1.1
  
 
 dev_dependencies:
