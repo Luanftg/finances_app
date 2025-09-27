@@ -2,7 +2,6 @@ import 'package:finances_app/src/core/command/commands.dart';
 import 'package:finances_app/src/core/result/result.dart';
 import 'package:finances_app/src/features/categories/category_model.dart';
 import 'package:finances_app/src/features/categories/data/category_repository.dart';
-import 'package:finances_app/src/features/categories/data/local_category_repository.dart';
 import 'package:finances_app/src/features/finance_moviment/data/finance_moviment_repository.dart';
 import 'package:finances_app/src/features/finance_moviment/domain/finance_moviment_model.dart';
 import 'package:finances_app/src/features/finance_moviment/domain/input_finance_moviment.dart';
@@ -15,7 +14,7 @@ class AddFinanceMovimentViewmodel extends ChangeNotifier {
   final PaymentTypesRepository _paymentTypesRepository;
 
   AddFinanceMovimentViewmodel({
-    required LocalCategoryRepository localCategoryRepository,
+    required CategoryRepository localCategoryRepository,
     required FinanceMovimentRepository financeMovimentRepository,
     required PaymentTypesRepository paymentRepository,
   })  : _categoryRepository = localCategoryRepository,

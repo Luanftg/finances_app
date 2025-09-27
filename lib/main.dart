@@ -1,3 +1,4 @@
+import 'package:finances_app/src/core/dependency_injection/app_injector.dart';
 import 'package:finances_app/src/core/routes/route_manager.dart';
 import 'package:finances_app/src/env/env.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoogleSignIn.instance.initialize(serverClientId: Env.googleApiKey);
+  AppInjector.initialize();
   await RouteManager.init();
   runApp(const MyApp());
 }
